@@ -90,8 +90,11 @@ export default {
                 email: email,
                 phone: phone,
                 address: address
-            }).then(() => {
-
+            },
+            {
+                headers: {'Accept': 'application/json', 'content-type': 'application/json'}
+            }
+            ).then(() => {
                 //redirect ke tenant index
                 router.push({
                     name: 'tenant'

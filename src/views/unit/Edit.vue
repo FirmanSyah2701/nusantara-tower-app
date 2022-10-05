@@ -99,7 +99,11 @@ export default {
                 unit_name: unit_name,
                 floor: floor,
                 area: area
-            }).then(() => {
+            },
+            {
+                headers: {'Accept': 'application/json', 'content-type': 'application/json'}
+            }
+            ).then(() => {
 
                 //redirect ke unit index
                 router.push({
