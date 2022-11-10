@@ -7,7 +7,7 @@
                         <h4>EDIT Unit</h4>
                         <hr>
 
-                        <form @submit.prevent="update">
+                        <form @submit.prevent="editItem(unit.id)">
                             <div class="form-group">
                                 <label for="unit_name" class="font-weight-bold">Nama Unit</label>
                                 <input type="text" class="form-control" v-model="unit.unit_name">
@@ -17,7 +17,7 @@
                                 </div>
                             </div>
                             <div class="form-group">
-                                <label for="floor" class="font-weight-bold">floor</label>
+                                <label for="floor" class="font-weight-bold">Floor</label>
                                 <input type="number" class="form-control" v-model="unit.floor">
                                 <!-- validation -->
                                 <div v-if="validation.floor" class="mt-2 alert alert-danger">
@@ -32,7 +32,7 @@
                                     {{ validation.area[0] }}
                                 </div>
                             </div>
-                            <div class="form-group mt-3">
+                            <div class="form-group mt-3 d-grid gap-2 d-md-flex justify-content-md-start">
                                 <button type="submit" class="btn btn-primary">Simpan</button>
                                 <router-link :to="{name: 'unit'}" class="btn btn-danger">Kembali</router-link>
                             </div>
@@ -44,86 +44,16 @@
     </div>
 </template>
 
-<script>
-import { reactive, ref, onMounted } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
-import axios from 'axios'
+<script setup>
+import { useRoute } from 'vue-router'
+import { storeToRefs } from 'pinia'
+import { unitStore } from '../../store/unit' 
 
-export default {
+const { unit, unit_name, floor, area, id, validation } = storeToRefs(unitStore())
+    
+const { fetchById, editItem } = unitStore()
 
-    setup() {
-        const token = localStorage.getItem('token')
+const route = useRoute()
+fetchById(route.params.id)
 
-        //state units
-        const unit = reactive({
-            unit_name: '',
-            floor: 0,
-            area: ''
-        })
-
-        //state validation
-        const validation = ref([])
-
-        //vue router
-        const router = useRouter()
-
-        //vue router
-        const route = useRoute()
-
-        //mounted
-        onMounted(() => {
-            console.log(token)
-            axios.defaults.headers.common.Authorization = `Bearer ${token}`
-            //get API from Laravel Backend
-            axios.get(`http://localhost:8000/api/units/${route.params.id}`)
-            .then(response => {
-              //assign state units with response data
-              unit.unit_name = response.data.unit_name  
-              unit.floor  = response.data.floor
-              unit.area  = response.data.area  
-
-            }).catch(error => {
-                console.log(error)
-            })
-
-        })
-
-        //method update
-        function update() {
-
-            let unit_name = unit.unit_name
-            let floor = unit.floor
-            let area = unit.area
-
-            axios.put(`http://localhost:8000/api/units/${route.params.id}`, {
-                unit_name: unit_name,
-                floor: floor,
-                area: area
-            },
-            {
-                headers: {'Accept': 'application/json', 'content-type': 'application/json'}
-            }
-            ).then(() => {
-
-                //redirect ke unit index
-                router.push({
-                    name: 'unit'
-                })
-
-            }).catch(error => {
-                //assign state validation with error 
-                validation.value = error.response.data
-            })
-        }
-
-        //return
-        return {
-            unit,
-            validation,
-            router,
-            update
-        }
-
-    }
-}
 </script>

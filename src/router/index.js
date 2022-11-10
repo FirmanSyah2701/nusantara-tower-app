@@ -1,4 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
+import { useAuth } from '@/store/auth'
+import unit from './unit'
+import tenant from './tenant'
 
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
@@ -6,44 +9,41 @@ const router = createRouter({
     {
       path: '/',
       name: 'login',
-      component: () => import('@/views/auth/Login.vue')
+      component: () => import('@/views/auth/Login.vue'),
+      meta: {
+        title: 'Login Page',
+        authPage: true
+      }
     },
     {
       path: '/dashboard',
       name: 'dashboard',
-      component: () => import('@/views/dashboard/Dashboard.vue')
+      component: () => import('@/views/dashboard/Dashboard.vue'),
+      meta: {
+        title: 'Dashboard',
+        requireAuth: true
+      }
     },
-    {
-      path: '/unit',
-      name: 'unit',
-      component: () => import('@/views/unit/Index.vue')
-    },
-    {
-      path: '/unit/create',
-      name: 'unit.create',
-      component: () => import('@/views/unit/Create.vue')
-    },
-    {
-        path: '/unit/edit/:id',
-        name: 'unit.edit',
-        component: () => import('@/views/unit/Edit.vue')
-    },
-    {
-      path: '/tenant',
-      name: 'tenant',
-      component: () => import('@/views/tenant/Index.vue')
-    },
-    {
-      path: '/tenant/create',
-      name: 'tenant.create',
-      component: () => import('@/views/tenant/Create.vue')
-    },
-    {
-        path: '/tenant/edit/:id',
-        name: 'tenant.edit',
-        component: () => import('@/views/tenant/Edit.vue')
-    }
+    ...unit, 
+    ...tenant
   ]
+})
+
+router.beforeEach(async (to, from, next) => {
+  const DEFAULT_TITLE = 'Nusatara Tower APP'
+
+  const auth = useAuth()
+  await auth.getUser()
+
+  document.title = to.meta.title || DEFAULT_TITLE
+
+  if (to.meta.requireAuth) {
+    (auth.authenticated) ? next() : next({ name: 'login' })
+  }
+
+  if (to.meta.authPage) {
+    (!auth.authenticated) ? next() : next({name: 'dashboard'})
+  }
 })
 
 export default router

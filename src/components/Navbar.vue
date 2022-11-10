@@ -14,10 +14,24 @@
           <router-link class="nav-link" active-class="active" :to="{name: 'tenant'}">Tenant</router-link>
         </li>
       </ul>
-      <form class="d-flex">
+      <form @submit.prevent="logout()" class="d-flex">
         <button class="btn btn-outline-success" type="submit">Logout</button>
       </form>
     </div>
   </div>
 </nav>
 </template>
+
+<script setup>
+import { useRouter } from 'vue-router'
+import { useAuth } from '@/store/auth'
+
+const auth = useAuth()
+const router = useRouter()
+
+const logout = async () => {
+  await auth.logout()
+  return router.push({name: 'login'})
+}
+
+</script>

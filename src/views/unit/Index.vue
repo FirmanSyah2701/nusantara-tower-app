@@ -6,7 +6,11 @@
                 <div class="card border-0 rounded shadow">
                     <div class="card-body">
                         <h4>Data Unit</h4>
-                        <router-link :to="{name: 'unit.create'}" class="btn btn-md btn-success">
+                        <div v-if="message" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong> {{message}} </strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        <router-link :to="{name: 'unit.create'}" class="justify-content-md-end btn btn-md btn-success">
                             Add Unit
                         </router-link>
 
@@ -25,13 +29,14 @@
                                     <td>{{ unit.floor }}</td>
                                     <td>{{ unit.area }}</td>
                                     <td>
-                                        <router-link :to="{name: 'unit.edit', params:{id: unit.id }}" class="btn btn-outline-warning mr-1">
-                                            EDIT
-                                        </router-link>
-                                        <button @click.prevent="handleDelete(unit.id)"
-                                            class="btn btn-outline-danger ml-1">
-                                            DELETE
-                                        </button>
+                                        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                                            <router-link class="btn btn-outline-warning" :to="{name: 'unit.edit', params:{id: unit.id }}">
+                                                EDIT
+                                            </router-link>
+                                            <button class="btn btn-outline-danger" @click.prevent="deleteItem(unit.id)">
+                                                DELETE
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -44,53 +49,17 @@
     </div>
 </template>
 
-<script>
-import axios from 'axios'
-import { onMounted, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import Navbar from '@/components/Navbar.vue'
+<script setup>
+    import { storeToRefs } from 'pinia'
+    import { unitStore } from '@/store/unit'
+    import Navbar from '@/components/Navbar.vue'
+    
+    const { units, unit_name, floor, area, id, message } = storeToRefs(unitStore())
+    
+    const { fetch, deleteItem } = unitStore()
+    
+    fetch()
 
-export default {
-    components: {Navbar},
-    setup() {
-        const token = localStorage.getItem('token')
+    console.log(unit_name)
 
-        const router = useRouter()
-
-        //reactive state
-        let units = ref([])
-
-        //mounted
-        onMounted(() => {
-            axios.defaults.headers.common.Authorization = `Bearer ${token}`
-            //get API from Laravel Backend
-            axios.get('http://localhost:8000/api/units')
-            .then(response => {
-              
-              //assign state posts with response data
-              units.value = response.data
-
-            }).catch(error => {
-                console.log(error.response.data)
-            })
-        })
-
-        function handleDelete(id) {
-            if (confirm("Do you really want to delete?")) {
-                axios.delete(`http://localhost:8000/api/units/${id}`)
-                .then(() => {      
-                    let index = units.value.map(data => data.id).indexOf(id)
-                    units.value.splice(index, 1)
-                    }).catch(error => {
-                        console.log(error.response.data)
-                    })
-            }
-        }
-
-        //return
-        return { units, handleDelete }
-
-    }
-
-}
 </script>

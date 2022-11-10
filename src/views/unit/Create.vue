@@ -7,10 +7,14 @@
                         <h4>Add Unit</h4>
                         <hr>
 
-                        <form @submit.prevent="store">
+                        <form @submit.prevent="addItem">
                             <div class="form-group">
                                 <label for="title" class="font-weight-bold">Nama Unit</label>
-                                <input type="text" class="form-control" v-model="unit.unit_name" placeholder="contoh: Unit A">
+                                <input 
+                                    type="text" class="form-control" 
+                                    v-model="unit_name" 
+                                    placeholder="contoh: Unit A"
+                                />
                                 <!-- validation -->
                                 <div v-if="validation.unit_name" class="mt-2 alert alert-danger">
                                     {{ validation.unit_name[0] }}
@@ -18,7 +22,7 @@
                             </div>
                             <div class="form-group">
                                 <label for="floor" class="font-weight-bold">Lantai</label>
-                                <input type="number" class="form-control" v-model="unit.floor">
+                                <input type="number" class="form-control" v-model="floor">
                                 <!-- validation -->
                                 <div v-if="validation.floor" class="mt-2 alert alert-danger">
                                     {{ validation.floor[0] }}
@@ -26,13 +30,18 @@
                             </div>
                             <div class="form-group">
                                 <label for="area" class="font-weight-bold">Area</label>
-                                <input type="text" class="form-control" v-model="unit.area" placeholder="contoh: 200m2">
+                                <input 
+                                    type="text" 
+                                    class="form-control" 
+                                    v-model="area" 
+                                    placeholder="contoh: 200m2"
+                                />
                                 <!-- validation -->
                                 <div v-if="validation.area" class="mt-2 alert alert-danger">
                                     {{ validation.area[0] }}
                                 </div>
                             </div>
-                            <div class="form-group mt-3">
+                            <div class="form-group mt-3 d-grid gap-2 d-md-flex justify-content-md-start">
                                 <button type="submit" class="btn btn-primary">Simpan</button>
                                 <router-link :to="{name: 'unit'}" class="btn btn-danger">Kembali</router-link>
                             </div>
@@ -44,63 +53,12 @@
     </div>
 </template>
 
-<script>
-import { reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-import axios from 'axios'
+<script setup>
+    import { storeToRefs } from 'pinia'
+    import { unitStore } from '@/store/unit'
+    
+    const { unit_name, floor, area, validation } = storeToRefs(unitStore())
+    
+    const { addItem } = unitStore()
 
-export default {
-
-    setup() {
-        const token = localStorage.getItem('token')
-
-        //state posts
-        const unit = reactive({
-            unit_name: '',
-            floor: '',
-            area: ''
-        })
-
-        //state validation
-        const validation = ref([])
-
-        //vue router
-        const router = useRouter()
-
-        //method store
-        function store() {
-
-            let unit_name = unit.unit_name
-            let floor = unit.floor
-            let area = unit.area
-            axios.defaults.headers.common.Authorization = `Bearer ${token}`
-            axios.post('http://localhost:8000/api/units', {
-                unit_name: unit_name,
-                floor: floor,
-                area: area
-            }, 
-            {
-                headers: {'Accept': 'application/json', 'content-type': 'application/json'}
-            }
-            ).then(() => {
-                //redirect ke unit index
-                router.push({name: 'unit'})
-            }).catch(error => {
-                //assign state validation with error 
-                validation.value = error.response.data.errors
-            })
-
-        }
-
-        //return
-        return {
-            unit,
-            validation,
-            router,
-            store
-        }
-
-    }
-
-}
 </script>

@@ -6,6 +6,10 @@
                 <div class="card border-0 rounded shadow">
                     <div class="card-body">
                         <h4>Data Tenant</h4>
+                        <div v-if="message" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <strong> {{message}} </strong>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
                         <router-link :to="{name: 'tenant.create'}" class="btn btn-md btn-success">
                             Add Tenant
                         </router-link>
@@ -27,13 +31,15 @@
                                     <td>{{ tenant.phone }}</td>
                                     <td>{{ tenant.address }}</td>
                                     <td>
-                                        <router-link :to="{name: 'tenant.edit', params:{id: tenant.id }}" class="btn btn-outline-warning">
-                                            EDIT
-                                        </router-link>
-                                        <button @click.prevent="handleDelete(tenant.id)"
-                                            class="btn btn-outline-danger pl-4">
-                                            DELETE
-                                        </button>
+                                        <div class="d-grid gap-2 d-md-flex justify-content-md-start">
+                                            <router-link :to="{name: 'tenant.edit', params:{id: tenant.id }}" class="btn btn-outline-warning">
+                                                EDIT
+                                            </router-link>
+                                            <button @click.prevent="deleteItem(tenant.id)"
+                                                class="btn btn-outline-danger pl-4">
+                                                DELETE
+                                            </button>
+                                        </div>
                                     </td>
                                 </tr>
                             </tbody>
@@ -46,53 +52,15 @@
     </div>
 </template>
 
-<script>
-import axios from 'axios'
-import { onMounted, ref } from 'vue'
-import Navbar from '@/components/Navbar.vue'
+<script setup>
+    import { storeToRefs } from 'pinia'
+    import { tenantStore } from '@/store/tenant'
+    import Navbar from '@/components/Navbar.vue'
+    
+    const { tenants, company, email, phone, address, id, message } = storeToRefs(tenantStore())
+    
+    const { fetch, deleteItem } = tenantStore()
+    
+    fetch()
 
-export default {
-    components: {Navbar},
-    setup() {
-        const token = localStorage.getItem('token')
-
-        //reactive state
-        let tenants = ref([])
-
-        //mounted
-        onMounted(() => {
-            axios.defaults.headers.common.Authorization = `Bearer ${token}`
-            //get API from Laravel Backend
-            axios.get('http://localhost:8000/api/tenants')
-            .then(response => {
-              //assign state posts with response data
-              tenants.value = response.data
-
-            }).catch(error => {
-                console.log(error.response.data)
-            })
-
-        })
-
-        function handleDelete(id) {
-            if (confirm("Do you really want to delete?")) {
-            //delete data post by ID
-                axios.delete(`http://localhost:8000/api/tenants/${id}`)
-                .then(() => {      
-                    //splice tenants 
-                    //tenants.value.splice(tenants.value.indexOf(id), 1);
-                    let index = tenants.value.map(data => data.id).indexOf(id)
-                    tenants.value.splice(index, 1)
-
-                    }).catch(error => {
-                        console.log(error.response.data)
-                    })
-            }
-        }
-
-        return { tenants, handleDelete }
-
-    }
-
-}
 </script>
